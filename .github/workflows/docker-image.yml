@@ -1,16 +1,13 @@
-# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
-# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
-
-name: Maven Package
+name: Docker Image CI
 
 on:
   push:
-    branches:
-    - main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -28,8 +25,9 @@ jobs:
 
     - name: Build with Maven
       run: mvn -B verify --file pom.xml
-
-    - name: Publish to GitHub Packages Apache Maven
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+    - name: Docker login
+      run: docker login ghcr.io -u drsylent -p ${{ github.token }}
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ghcr.io/drsylent/cloud-native-tutorial:demo
+    - name: Push the Docker image
+      run: docker push ghcr.io/drsylent/cloud-native-tutorial:demo
